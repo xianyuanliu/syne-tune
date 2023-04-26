@@ -11,6 +11,7 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 import logging
+from typing import Optional
 
 from syne_tune.tuner_callback import StoreResultsCallback
 from syne_tune.backend.simulator_backend.simulator_backend import SimulatorBackend
@@ -48,7 +49,7 @@ class SimulatorCallback(StoreResultsCallback):
     keeper.
     """
 
-    def __init__(self):
+    def __init__(self, max_simulation_time: Optional[float] = None):
         # Note: `results_update_interval` is w.r.t. real time, not
         # simulated time. Storing results intermediately is not important for
         # the simulator back-end, so the default is larger
@@ -57,6 +58,7 @@ class SimulatorCallback(StoreResultsCallback):
         self._time_keeper = None
         self._tuner = None
         self._backup_stop_criterion = None
+        self._max_simulation_time = max_simulation_time
 
     def _modify_stop_criterion(self, tuner: "Tuner"):
         stop_criterion = tuner.stop_criterion
@@ -84,6 +86,9 @@ class SimulatorCallback(StoreResultsCallback):
                 max_num_trials_finished=stop_criterion.max_num_trials_finished,
                 max_metric_value={ST_TUNER_TIME: max_wallclock_time},
                 max_num_evaluations=stop_criterion.max_num_evaluations,
+                max_wallclock_time=self._max_simulation_time
+                if self._max_simulation_time
+                else None,
             )
             tuner.stop_criterion = new_stop_criterion
 

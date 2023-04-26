@@ -38,57 +38,86 @@ def extract_input_output(
         [evals.hyperparameters for evals in transfer_learning_evaluations.values()],
         ignore_index=True,
     )
-    normalizer = from_string(normalization)
+    normalizer = from_string(normalization) if normalization else None
     ys = []
     for evals in transfer_learning_evaluations.values():
         # take average over seed and last fidelity and first objective
         y = evals.objectives_evaluations.mean(axis=1)[:, -1, 0:1]
-        ys.append(normalizer(y, random_state=random_state).transform(y))
+        if normalization:
+            ys.append(normalizer(y, random_state=random_state).transform(y))
+        else:
+            ys.append(y)
     y = np.concatenate(ys, axis=0)
     return X, y
 
 
 def fit_model(
+    X,
+    y,
     config_space,
-    transfer_learning_evaluations,
-    normalization: str,
     max_fit_samples: int,
     random_state,
-    model=xgboost.XGBRegressor(),
+    model=None,
+    max_val_samples: int = 1000,
+    do_eval_model: bool = True,
 ):
+    """
+    only computes error on validation set if max_val_samples is defined
+    :return:
+    """
+    if model is None:
+        model = xgboost.XGBRegressor()
     model_pipeline = BlackboxSurrogate.make_model_pipeline(
         configuration_space=config_space,
         fidelity_space={},
         model=model,
     )
-    X, y = extract_input_output(
-        transfer_learning_evaluations, normalization, random_state=random_state
-    )
-    with catchtime("time to fit the model"):
-        X_train, X_test, y_train, y_test = train_test_split(
+
+    if max_val_samples:
+        X_train, X_val, y_train, y_val = train_test_split(
             X, y, test_size=0.1, random_state=random_state
         )
-        X_train, y_train = subsample(
-            X_train, y_train, max_samples=max_fit_samples, random_state=random_state
-        )
-        model_pipeline.fit(X_train, y_train)
+        X_train.reset_index(inplace=True)
+        X_val.reset_index(inplace=True)
+        if len(X_val) > max_val_samples:
+            X_val, y_val = subsample(
+                X_val, y_val, max_samples=1000, random_state=random_state
+            )
+    else:
+        X_train = X
+        y_train = y
+    X_train, y_train = subsample(
+        X_train, y_train, max_samples=max_fit_samples, random_state=random_state
+    )
+    model_pipeline.fit(X_train, y_train)
 
-        # compute residuals (num_metrics,)
+    # compute residuals (num_metrics,)
+    if do_eval_model:
         sigma_train = eval_model(model_pipeline, X_train, y_train)
+    else:
+        sigma_train = None
 
-        # compute residuals (num_metrics,)
-        sigma_val = eval_model(model_pipeline, X_test, y_test)
+    # compute residuals (num_metrics,)
+    if do_eval_model and max_val_samples:
+        sigma_val = eval_model(model_pipeline, X_val, y_val)
+    else:
+        sigma_val = None
 
     return model_pipeline, sigma_train, sigma_val
 
 
 def eval_model(model_pipeline, X, y):
     # compute residuals (num_metrics,)
-    mu_pred = model_pipeline.predict(X)
-    if mu_pred.ndim == 1:
-        mu_pred = mu_pred.reshape(-1, 1)
-    res = np.std(y - mu_pred, axis=0)
-    return res.mean()
+    pred = model_pipeline.predict(X)
+    # todo use a prediction class to avoid the switch case
+    if hasattr(pred, "quantiles"):
+        res = np.mean(np.abs(y - pred.mean()), axis=0)
+        return res.mean()
+    else:
+        if pred.ndim == 1:
+            pred = pred.reshape(-1, 1)
+        res = np.mean(np.abs(y - pred), axis=0)
+        return res.mean()
 
 
 def subsample(
@@ -98,12 +127,12 @@ def subsample(
     random_state: np.random.RandomState = None,
 ):
     assert len(X_train) == len(z_train)
-    X_train.reset_index(inplace=True)
     if max_samples is not None and max_samples < len(X_train):
         if random_state is None:
             random_indices = np.random.permutation(len(X_train))[:max_samples]
         else:
             random_indices = random_state.permutation(len(X_train))[:max_samples]
+        X_train.reset_index(inplace=True, drop=True)
         X_train = X_train.loc[random_indices]
         z_train = z_train[random_indices]
     return X_train, z_train
@@ -144,19 +173,26 @@ class QuantileBasedSurrogateSearcher(SearcherWithRandomSeed):
         mode: Optional[str] = None,
         max_fit_samples: int = 100000,
         normalization: str = "gaussian",
+        random_seed: Optional[int] = None,
         **kwargs,
     ):
         super(QuantileBasedSurrogateSearcher, self).__init__(
             config_space=config_space,
             metric=metric,
             points_to_evaluate=[],
+            random_seed=random_seed,
             **kwargs,
         )
         self.mode = mode
-        self.model_pipeline, sigma_train, sigma_val = fit_model(
-            config_space=config_space,
+        X, y = extract_input_output(
             transfer_learning_evaluations=transfer_learning_evaluations,
             normalization=normalization,
+            random_state=self.random_state,
+        )
+        self.model_pipeline, sigma_train, sigma_val = fit_model(
+            X=X,
+            y=y,
+            config_space=config_space,
             max_fit_samples=max_fit_samples,
             model=xgboost.XGBRegressor(),
             random_state=self.random_state,

@@ -49,6 +49,9 @@ from syne_tune.optimizer.schedulers.searchers.botorch import (
     BotorchSearcher,
 )
 from syne_tune.optimizer.schedulers.multiobjective import MOASHA
+from syne_tune.optimizer.schedulers.searchers.conformal.surrogate_searcher import (
+    SurrogateSearcher,
+)
 from syne_tune.optimizer.schedulers.transfer_learning import (
     TransferLearningTaskEvaluations,
     BoundingBox,
@@ -58,7 +61,6 @@ from syne_tune.optimizer.schedulers.transfer_learning.quantile_based.quantile_ba
     QuantileBasedSurrogateSearcher,
 )
 from syne_tune.config_space import randint, uniform, choice
-
 
 config_space = {
     "steps": 100,
@@ -334,6 +336,28 @@ transfer_learning_evaluations = make_transfer_learning_evaluations()
             ),
             metric=metric1,
             mode=mode,
+        ),
+        FIFOScheduler(
+            searcher=SurrogateSearcher(
+                mode=mode,
+                config_space=config_space,
+                metric=metric1,
+                # transfer_learning_evaluations=transfer_learning_evaluations,
+            ),
+            mode=mode,
+            config_space=config_space,
+            metric=metric1,
+        ),
+        FIFOScheduler(
+            searcher=SurrogateSearcher(
+                mode=mode,
+                config_space=config_space,
+                metric=metric1,
+                surrogate="QuantileRegression",
+            ),
+            mode=mode,
+            config_space=config_space,
+            metric=metric1,
         ),
     ],
 )

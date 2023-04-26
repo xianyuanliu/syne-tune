@@ -10,6 +10,7 @@
 # on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
+import logging
 import os
 import re
 import string
@@ -17,6 +18,9 @@ import random
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import Optional, Dict
+import sagemaker
+from typing import Optional
 from typing import Optional, List, Union
 from time import perf_counter
 from contextlib import contextmanager
@@ -184,13 +188,35 @@ def script_height_example_path() -> Path:
 
 
 @contextmanager
-def catchtime(name: str) -> float:
+def catchtime(
+    name: str, runtime_dict: Optional[Dict[str, float]] = None, verbose: bool = True
+) -> float:
     start = perf_counter()
     try:
-        print(f"start: {name}")
+        if verbose:
+            logging.info(f"start: {name}")
         yield lambda: perf_counter() - start
     finally:
-        print(f"Time for {name}: {perf_counter() - start:.4f} secs")
+        runtime = perf_counter() - start
+        if runtime_dict is not None:
+            runtime_dict[name] = runtime
+        if verbose:
+            print(f"Time for {name}: {runtime:.4f} secs")
+
+
+if __name__ == "__main__":
+    import time
+
+    with catchtime("ya"):
+        time.sleep(0.2)
+
+    runtimes = {}
+    with catchtime("yo", runtimes):
+        time.sleep(1)
+
+    with catchtime("yep", runtimes):
+        time.sleep(0.1)
+    print(runtimes)
 
 
 def is_increasing(lst: List[Union[float, int]]) -> bool:

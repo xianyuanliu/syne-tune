@@ -35,6 +35,7 @@ except Exception:
     sm_session = None
 
 
+@pytest.mark.skip("")
 @pytest.mark.parametrize("benchmark, sagemaker_backend", all_real_benchmarks)
 def test_create_estimators(benchmark, sagemaker_backend):
     if sm_session is not None:

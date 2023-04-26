@@ -30,6 +30,8 @@ try:
 except ImportError:
     print(try_import_botorch_message())
 
+from sklearn.preprocessing import power_transform
+
 import syne_tune.config_space as cs
 from syne_tune.optimizer.schedulers.searchers import SearcherWithRandomSeed
 from syne_tune.optimizer.schedulers.searchers.utils import (
@@ -78,6 +80,7 @@ class BotorchSearcher(SearcherWithRandomSeed):
         no_fantasizing: bool = False,
         max_num_observations: Optional[int] = 200,
         input_warping: bool = True,
+        output_warping: bool = False,
         **kwargs,
     ):
         super(BotorchSearcher, self).__init__(
@@ -94,6 +97,7 @@ class BotorchSearcher(SearcherWithRandomSeed):
         self.fantasising = not no_fantasizing
         self.max_num_observations = max_num_observations
         self.input_warping = input_warping
+        self.output_warping = output_warping
         self.trial_configs = dict()
         self.pending_trials = set()
         self.trial_observations = dict()
@@ -171,7 +175,6 @@ class BotorchSearcher(SearcherWithRandomSeed):
                 X_pending = self._config_to_feature_matrix(self._configs_pending())
             else:
                 X_pending = None
-
             acq = qExpectedImprovement(
                 model=gp,
                 best_f=Y_tensor.max().item(),
@@ -195,7 +198,7 @@ class BotorchSearcher(SearcherWithRandomSeed):
                     "Optimization of the acquisition function yielded a config that was already seen."
                 )
                 return self._sample_and_pick_acq_best(acq)
-        except NotPSDError as _:
+        except (NotPSDError, ValueError) as _:
             logging.warning("Chlolesky inversion failed, sampling randomly.")
             return self._sample_random()
 
@@ -207,6 +210,22 @@ class BotorchSearcher(SearcherWithRandomSeed):
 
         noise_std = NOISE_LEVEL
         Y_tensor += noise_std * torch.randn_like(Y_tensor)
+        y_std = Y_tensor.std()
+        if self.output_warping:
+            if Y_tensor.min() <= 0:
+                Y_tensor = torch.FloatTensor(
+                    power_transform(Y_tensor / y_std, method="yeo-johnson")
+                )
+            else:
+                Y_tensor = torch.FloatTensor(
+                    power_transform(Y_tensor / y_std, method="box-cox")
+                )
+                if y_std < 0.5:
+                    Y_tensor = torch.FloatTensor(
+                        power_transform(Y_tensor / y_std, method="yeo-johnson")
+                    )
+            if y_std < 0.5:
+                raise RuntimeError("Power transformation failed")
 
         if self.input_warping:
             warp_tf = Warp(indices=list(range(X_tensor.shape[-1])))

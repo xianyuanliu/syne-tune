@@ -12,6 +12,9 @@
 # permissions and limitations under the License.
 import logging
 
+from syne_tune.optimizer.schedulers.searchers.regularized_evolution import (
+    RegularizedEvolution,
+)
 from syne_tune.try_import import (
     try_import_gpsearchers_message,
     try_import_kde_message,
@@ -58,6 +61,8 @@ def searcher_factory(searcher_name: str, **kwargs) -> BaseSearcher:
         searcher_cls = RandomSearcher
     elif searcher_name == "grid":
         searcher_cls = GridSearcher
+    elif searcher_name == "rea":
+        searcher_cls = RegularizedEvolution
     elif searcher_name == "kde":
         try:
             from syne_tune.optimizer.schedulers.searchers.kde import (

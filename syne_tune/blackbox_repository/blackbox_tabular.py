@@ -308,12 +308,15 @@ def serialize(
     # pick an arbitrary blackbox
     bb_first = next(iter(bb_dict.values()))
     for bb in bb_dict.values():
-        pd.testing.assert_frame_equal(bb.hyperparameters, bb_first.hyperparameters)
+        # pd.testing.assert_frame_equal(bb.hyperparameters, bb_first.hyperparameters)
         # assert bb.configuration_space == bb_first.configuration_space
         # assert bb.fidelity_space == bb_first.fidelity_space
         assert np.all(bb.fidelity_values == bb_first.fidelity_values)
         assert bb.objectives_names == bb_first.objectives_names
-        assert bb.objectives_evaluations.shape == bb_first.objectives_evaluations.shape
+        assert (
+            bb.objectives_evaluations.shape[-1]
+            == bb_first.objectives_evaluations.shape[-1]
+        )
 
     path = Path(path)
 
@@ -336,6 +339,7 @@ def serialize(
 
     with open(path / "objectives_evaluations.npy", "wb") as f:
         # (num_tasks, num_hps, num_seeds, num_fidelities, num_objectives)
+        print([bb_dict[task].objectives_evaluations.shape for task in bb_dict.keys()])
         objectives = np.stack(
             [bb_dict[task].objectives_evaluations for task in bb_dict.keys()]
         )

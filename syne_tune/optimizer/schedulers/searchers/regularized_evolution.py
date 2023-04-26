@@ -57,8 +57,8 @@ class RegularizedEvolution(SearcherWithRandomSeed):
         metric: str,
         points_to_evaluate: Optional[List[dict]] = None,
         mode: str = "min",
-        population_size: int = 100,
-        sample_size: int = 10,
+        population_size: int = 10,
+        sample_size: int = 5,
         **kwargs,
     ):
         super(RegularizedEvolution, self).__init__(
@@ -80,7 +80,7 @@ class RegularizedEvolution(SearcherWithRandomSeed):
                 hps = [
                     (k, v)
                     for k, v in self.config_space.items()
-                    if isinstance(v, Domain) and len(v) > 1
+                    if isinstance(v, Domain)  # and len(v) > 1
                 ]
                 assert (
                     len(hps) >= 0
@@ -88,7 +88,7 @@ class RegularizedEvolution(SearcherWithRandomSeed):
                 hp_name, hp = hps[self.random_state.randint(len(hps))]
 
                 # mutate the value by sampling
-                config[hp_name] = hp.sample(random_state=self.random_state)
+                child_config[hp_name] = hp.sample(random_state=self.random_state)
             else:
                 break
         if sample_try == self.num_sample_try:

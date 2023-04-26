@@ -84,7 +84,7 @@ class GaussianTransform:
 
 
 class StandardTransform:
-    def __init__(self, y: np.array):
+    def __init__(self, y: np.array, random_state=None):
         """
         Transformation that removes mean and divide by standard error.
         :param y:

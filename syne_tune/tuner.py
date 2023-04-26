@@ -353,6 +353,7 @@ class Tuner:
         self._set_metadata(res, "metric_mode", self.scheduler.metric_mode())
         self._set_metadata(res, "entrypoint", self.trial_backend.entrypoint_path().stem)
         self._set_metadata(res, "backend", str(type(self.trial_backend).__name__))
+
         self._set_metadata(
             res, "scheduler_name", str(self.scheduler.__class__.__name__)
         )

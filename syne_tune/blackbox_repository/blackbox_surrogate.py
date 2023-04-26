@@ -197,9 +197,7 @@ class BlackboxSurrogate(Blackbox):
         return num_fidelities
 
     @staticmethod
-    def make_model_pipeline(
-        configuration_space, fidelity_space, model, predict_curves=False
-    ):
+    def make_featurizer(configuration_space, fidelity_space=None, predict_curves=False):
         """Create feature pipeline for scikit-learn model
 
         :param configuration_space: Configuration space
@@ -243,9 +241,28 @@ class BlackboxSurrogate(Blackbox):
                 ("numeric", make_pipeline(Columns(names=numeric), StandardScaler()))
             )
 
+        return FeatureUnion(features_union)
+
+    @staticmethod
+    def make_model_pipeline(
+        configuration_space, fidelity_space, model, predict_curves=False
+    ):
+        """Create feature pipeline for scikit-learn model
+
+        :param configuration_space: Configuration space
+        :param fidelity_space: Fidelity space
+        :param model: Scikit-learn model
+        :param predict_curves: Predict full curves?
+        :return: Feature pipeline
+        """
         return Pipeline(
             [
-                ("features", FeatureUnion(features_union)),
+                (
+                    "features",
+                    BlackboxSurrogate.make_featurizer(
+                        configuration_space, fidelity_space, predict_curves
+                    ),
+                ),
                 ("standard scaler", StandardScaler(with_mean=False)),
                 ("model", model),
             ]

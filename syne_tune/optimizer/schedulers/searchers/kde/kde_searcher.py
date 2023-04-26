@@ -97,13 +97,13 @@ class KernelDensityEstimator(SearcherWithRandomSeed):
         if top_n_percent is None:
             top_n_percent = 15
         if min_bandwidth is None:
-            min_bandwidth = 1e-3
+            min_bandwidth = 0.1
         if num_candidates is None:
             num_candidates = 64
         if bandwidth_factor is None:
             bandwidth_factor = 3
         if random_fraction is None:
-            random_fraction = 0.33
+            random_fraction = 0.1
         self.mode = mode
         self.num_evaluations = 0
         self.min_bandwidth = min_bandwidth

@@ -253,6 +253,7 @@ class TuningStatus:
         res_str += (
             f"{num_running} trials running, "
             f"{num_finished} finished ({self.num_trials_completed} until the end), "
+            f"{self.overall_metric_statistics.count} results seen, "
             f"{self.wallclock_time:.2f}s wallclock-time"
         )
         # f"{self.user_time:.2f}s approximated user-time"
@@ -280,8 +281,8 @@ def print_best_metric_found(
     # only plot results of the best first metric for now in summary, plotting the optimal metrics for multiple
     # objectives would require to display the Pareto set.
     metric_name = metric_names[0]
-    print("-" * 20)
-    print(f"Resource summary (last result is reported):\n{str(tuning_status)}")
+    logging.info("-" * 20)
+    logging.info(f"Resource summary (last result is reported):\n{str(tuning_status)}")
     if mode == "min":
         metric_per_trial = [
             (trial_id, stats.min_metrics.get(metric_name, np_inf))
@@ -295,6 +296,6 @@ def print_best_metric_found(
         ]
         metric_per_trial = sorted(metric_per_trial, key=lambda x: -x[1])
     best_trialid, best_metric = metric_per_trial[0]
-    print(f"{metric_name}: best {best_metric} for trial-id {best_trialid}")
-    print("-" * 20)
+    logging.info(f"{metric_name}: best {best_metric} for trial-id {best_trialid}")
+    logging.info("-" * 20)
     return best_trialid, best_metric
