@@ -3,7 +3,7 @@ tqdm
 coolname
 numpy
 pandas
-fastparquet
+fastparquet==0.8.1
 s3fs
 scikit-learn
 h5py # note: only needed for fcnet
