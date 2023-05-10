@@ -13,4 +13,8 @@ botorch==0.6.6
 gpytorch==1.8.1
 xgboost==1.7.5
 yahpo-gym==1.0.1
-matplotlib  # for results analysis
+
+# for results analysis
+matplotlib
+scikit-posthocs==0.7.0
+autorank

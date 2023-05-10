@@ -23,7 +23,7 @@ import dill
 import numpy as np
 from matplotlib import pyplot as plt
 
-from benchmarking.critical_diagram import draw_cd_diagram
+from benchmarking.nursery.benchmark_conformal.results_analysis.critical_diagram import draw_cd_diagram
 from benchmarking.nursery.benchmark_conformal.baselines import (
     Methods,
 )
