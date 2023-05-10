@@ -616,15 +616,3 @@ def draw_cd_diagram(
     fig.savefig(filename, bbox_inches="tight")
 
 
-if __name__ == "__main__":
-    df_perf = pd.read_csv(
-        "/Users/dsalina/Documents/code/cd-diagram/example.csv", index_col=False
-    )
-
-    draw_cd_diagram(
-        df=df_perf,
-        method_column="classifier_name",
-        dataset_column="dataset_name",
-        rank_column="accuracy",
-        title="Accuracy",
-    )
