@@ -320,13 +320,11 @@ def plot_critical_diagram(
         [m] * (len(df_ranks) // len(methods_to_show)) for m in methods_to_show_renamed
     ]
     df_ranks["scheduler"] = [x for m in col_methods for x in m]
-    df_ranks["dataset_seed_time"] = [i for m in col_methods for i, x in enumerate(m)]
 
     try:
         draw_cd_diagram(
             df=df_ranks,
             method_column="scheduler",
-            dataset_column="dataset_seed_time",
             rank_column="rank",
             title=benchmark_family,
             folder=str(result_folder),
@@ -424,7 +422,6 @@ def generate_critical_diagrams(
                 df=df_perf,
                 method_column="method",
                 rank_column="rank",
-                dataset_column="benchmark",
                 title=f"Rank@{int(budget_ratio*100)}%",
                 folder=result_folder,
             )

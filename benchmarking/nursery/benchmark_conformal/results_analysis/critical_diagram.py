@@ -576,7 +576,6 @@ def draw_cd_diagram(
     df: pd.DataFrame,
     method_column: str,
     rank_column: str,
-    dataset_column: str,
     alpha: float = 0.05,
     title: str = None,
     folder: str = None,
@@ -585,7 +584,6 @@ def draw_cd_diagram(
     :param df: dataframe that contains all methods results
     :param method_column: column that contains the method name
     :param rank_column: column that contains the rank, values should be in [0, 1] where lower is better.
-    :param dataset_column: column that contains dataset
     :param alpha: statistical significancy for statistical tests
     :param title: title of the figure
     :param folder: folder to write the figure to
