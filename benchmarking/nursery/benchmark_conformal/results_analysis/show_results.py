@@ -13,6 +13,9 @@
 import logging
 
 import matplotlib
+
+matplotlib.rcParams["pdf.fonttype"] = 42
+
 import pandas as pd
 import traceback
 from argparse import ArgumentParser
@@ -23,7 +26,9 @@ import dill
 import numpy as np
 from matplotlib import pyplot as plt
 
-from benchmarking.nursery.benchmark_conformal.results_analysis.critical_diagram import draw_cd_diagram
+from benchmarking.nursery.benchmark_conformal.results_analysis.critical_diagram import (
+    draw_cd_diagram,
+)
 from benchmarking.nursery.benchmark_conformal.baselines import (
     Methods,
 )
@@ -377,7 +382,7 @@ def generate_rank_results(
     plot_ranks(
         all_ranks.values,
         all_results,
-        "Average rank",
+        "Average-rank",
         rename_dict,
         result_folder,
         methods_to_show,
@@ -632,5 +637,5 @@ if __name__ == "__main__":
             methods_to_show=methods,
             rename_dict=rename_dict,
             result_folder=result_folder,
-            title="Normalized regret",
+            title="Normalized-regret",
         )

@@ -16,6 +16,10 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib import cm
+import matplotlib
+
+matplotlib.rcParams["pdf.fonttype"] = 42
+
 from scipy.stats import norm
 
 from benchmarking.nursery.benchmark_conformal.util import (
