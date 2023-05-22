@@ -596,9 +596,21 @@ def draw_cd_diagram(
         df,
         val_col=rank_column,
         group_col=method_column,
+        p_adjust="holm"
     )
-    fig, ax = plt.subplots(figsize=(8, 4))
-    cdd = critical_difference_diagram(avg_rank, test_results_wilcox, ax=ax, alpha=alpha)
+    fig, ax = plt.subplots(figsize=(9, 3))
+    cdd = critical_difference_diagram(
+        avg_rank,
+        test_results_wilcox,
+        ax=ax,
+        alpha=alpha,
+        label_props={'color': 'black', 'fontweight': 'bold'},
+        crossbar_props={'color': "black", 'marker': '.'},
+        marker_props={'marker': '.', 's': 1, 'color': 'black', 'edgecolor': 'black'},
+        elbow_props={'color': 'black'},
+        label_fmt_left="{label}",
+        label_fmt_right="{label}",
+    )
     if title:
         font = {
             "family": "sans-serif",
