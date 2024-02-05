@@ -116,15 +116,15 @@ class SymmetricConformalizedGradientBoostingQuantileRegressor(
                 - self.quantile_regressors[cq.upper_quantile]
                 .predict(x_validation)
                 .ravel()
-            )
+            )  # eq (4) in the paper
             residuals = np.maximum(residuals_lower, residuals_upper)
             cq.correction = np.quantile(
-                residuals, q=cq.target_coverage / (1 + 1 / residuals.size)
+                residuals, q=cq.target_coverage / (1 + 1 / residuals.size)  # eq (5) in the paper
             )
 
     def predict(self, df_test: pd.DataFrame) -> QuantileRegressorPredictions:
         quantile_res = {}
-        for alpha, cq in self.conformal_correction.items():
+        for alpha, cq in self.conformal_correction.items():  # eq (6) in the paper
             lower_preds = (
                 self.quantile_regressors[cq.lower_quantile].predict(df_test)
                 - cq.correction
