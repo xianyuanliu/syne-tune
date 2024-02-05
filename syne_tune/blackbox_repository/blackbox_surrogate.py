@@ -232,7 +232,7 @@ class BlackboxSurrogate(Blackbox):
                     "categorical",
                     make_pipeline(
                         Columns(names=categorical),
-                        OneHotEncoder(sparse=False, handle_unknown="ignore"),
+                        OneHotEncoder(sparse_output=False, handle_unknown="ignore"),
                     ),
                 )
             )
