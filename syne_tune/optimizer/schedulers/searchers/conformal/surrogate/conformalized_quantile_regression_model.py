@@ -78,12 +78,13 @@ class ConformalizedGradientBoostingQuantileRegressor(GradientBoostingQuantileReg
                 - y_validation.ravel()
             )
 
+            # Compute the quantile loss - eq (1) in the paper
             if alpha < 0.5:
                 target_quantile = 1 - alpha
             else:
                 target_quantile = alpha
 
-            cq.correction = np.quantile(residuals, q=target_quantile)
+            cq.correction = np.quantile(residuals, q=target_quantile)  # using np.quantile for quantile of the residuals
 
     def predict(self, df_test: pd.DataFrame) -> QuantileRegressorPredictions:
         quantile_res = {
